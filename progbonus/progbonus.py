@@ -25,7 +25,10 @@ class ProgBonusResult:
     @staticmethod
     def get_result(response):
         if response.ok:
-            return ProgBonusResult.ok(response.json())
+            try:
+                return ProgBonusResult.ok(response.json())
+            except:
+                return ProgBonusResult.ok()
         else:
             try:
                 err = response.json()
@@ -51,14 +54,11 @@ class ProgBonus:
         self.base_url = credentials.api_url
         self.market_id = credentials.market_id
         self.api_key = credentials.api_key
-        self.store_id = credentials.market_id
+        self.store_id = credentials.store_id
 
-    # def get_customers(self):
-    #     url = self.base_url + "/api/v1/customers"
-    #     r = requests.get(url, headers={"Authorization": self.api_key})
-    #     data = r.json()
-    #     print(data)
-    #     return data.items
+    def get_customers(self, page=1, count=50):
+        url = "/api/v1/customers/?page=" + page + "&count=" + count
+        return self.get_result(url)
 
     def find_by_phone(self, phone_number):
         url = (
@@ -77,6 +77,20 @@ class ProgBonus:
         )
         return self.get_result(url, data=None)
 
+    def send_purchase_code(self, customer_id, price):
+        url = "/api/shortcodes/purchase"
+        data = {"customerId": customer_id, "storeId": self.store_id, "price": price}
+        return self.get_result(url, post=True, json=data)
+
+    def is_purchase_code_valid(self, short_code, customer_id):
+        url = (
+            "/api/shortcodes/"
+            + str(short_code)
+            + "/purchase/isvalid?customerId="
+            + str(customer_id)
+        )
+        return self.get_result(url)
+
     def save_customer(self, phone_number, full_name, short_code):
         url = "/api/v1/customers?include=bonusInfo,discountLevel"
         data = {
@@ -87,8 +101,19 @@ class ProgBonus:
         }
         return self.get_result(url, post=True, json=data)
 
+    def save_purchase(self, customer_id, price, minus, short_code):
+        url = "/api/v1/customers/" + str(customer_id) + "/purchases"
+        data = {
+            "price": price,
+            "minus": minus,
+            "shortCode": short_code,
+            "storeId": self.store_id,
+        }
+        return self.get_result(url, post=True, json=data)
+
     def get_result(self, url, post=False, data=None, json=None):
         u = self.base_url + url
+        print(("POST " if post else "GET ") + u)
         try:
             if post:
                 r = requests.post(

@@ -18,8 +18,19 @@ cred = ProgBonusCredentials(
 progbonus = ProgBonus(cred)
 
 customerResult = progbonus.find_by_phone(os.getenv("TEST_PHONE"))
-print("Result is " + str(customerResult))
+print("Customer result is " + str(customerResult))
 
-# ProgBonus().send_registration_code(test_phone)
+customer = customerResult.data
+# purchaseCodeResult = progbonus.send_purchase_code(customer["customerId"], 10)
+# print("Purchase code result is " + str(purchaseCodeResult))
+
+# CHECK PURCHASE CODE
+res = progbonus.is_purchase_code_valid("1232", customer["customerId"])
+print("Result is " + str(res))
+
+# SAVE PURCHASE
+res = progbonus.save_purchase(customer["customerId"], 10, 0, "1234")
+print("Result is " + str(res))
+
 # res = ProgBonus().save_customer(test_phone, test_name, "3288")
 # print("Result is " + str(res))
