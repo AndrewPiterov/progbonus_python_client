@@ -18,7 +18,7 @@ class ProgBonusResult:
 
     def __str__(self):
         if self.error:
-            return str(self.success) + ": " + self.error
+            return str(self.success) + ": " + str(self.error)
         else:
             return str(self.success) + ": " + str(self.data)
 
@@ -75,12 +75,21 @@ class ProgBonus:
             + "&storeId="
             + str(self.store_id)
         )
-        return self.get_result(url, data=None)
+        return self.get_result(url, post=True, data=None)
 
     def send_purchase_code(self, customer_id, price):
         url = "/api/shortcodes/purchase"
         data = {"customerId": customer_id, "storeId": self.store_id, "price": price}
         return self.get_result(url, post=True, json=data)
+
+    def is_registration_code_valid(self, short_code, phone_number):
+        url = (
+            "/api/shortcodes/"
+            + str(short_code)
+            + "/registration/isvalid?phoneNumber="
+            + str(phone_number)
+        )
+        return self.get_result(url)
 
     def is_purchase_code_valid(self, short_code, customer_id):
         url = (
